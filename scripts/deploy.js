@@ -1,33 +1,34 @@
 // We require the Hardhat Runtime Environment explicitly here. This is optional
 // but useful for running the script in a standalone fashion through `node <script>`.
 //
-// You can also run a script with `npx hardhat run <script>`. If you do that, Hardhat
-// will compile your contracts, add the Hardhat Runtime Environment's members to the
-// global scope, and execute the script.
-const hre = require("hardhat");
+const ethers = require('ethers');
+require('dotenv').config();
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const unlockTime = currentTimestampInSeconds + 60;
 
-  const lockedAmount = hre.ethers.parseEther("0.001");
+  const url = process.env.ALCHEMY_TESTNET_RPC_URL;
 
-  const lock = await hre.ethers.deployContract("Lock", [unlockTime], {
-    value: lockedAmount,
-  });
+  let artifacts = await hre.artifacts.readArtifact("Faucet");
 
-  await lock.waitForDeployment();
+  const provider = new ethers.providers.JsonRpcProvider(url);
 
-  console.log(
-    `Lock with ${ethers.formatEther(
-      lockedAmount
-    )}ETH and unlock timestamp ${unlockTime} deployed to ${lock.target}`
-  );
+  let privateKey = process.env.TESTNET_PRIVATE_KEY;
+
+  let wallet = new ethers.Wallet(privateKey, provider);
+
+  // Create an instance of a Faucet Factory
+  let factory = new ethers.ContractFactory(artifacts.abi, artifacts.bytecode, wallet);
+
+  let faucet = await factory.deploy();
+
+  console.log("Faucet address:", faucet.address);
+
+  await faucet.deployed();
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
+main()
+  .then(() => process.exit(0))
+  .catch(error => {
+    console.error(error);
+    process.exit(1);
 });
