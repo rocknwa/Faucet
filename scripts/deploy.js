@@ -8,7 +8,7 @@ async function main() {
 
   const url = process.env.ALCHEMY_TESTNET_RPC_URL;
 
-  let artifacts = await hre.artifacts.readArtifact("Faucet");
+  let artifacts = await hre.artifacts.readArtifact("Faucet2");
 
   const provider = new ethers.providers.JsonRpcProvider(url);
 
@@ -21,7 +21,7 @@ async function main() {
 
   let faucet = await factory.deploy();
 
-  console.log("Faucet address:", faucet.address);
+  console.log("Faucet address:", faucet2.address);
 
   await faucet.deployed();
 }
